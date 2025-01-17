@@ -104,7 +104,7 @@ export default function DashBoard() {
     if (data.error) {
       toast.error(data.error.message);
     } else {
-      console.log(data)
+      console.log(data);
       if (data.data.type === "application/pdf") {
         const url = URL.createObjectURL(data.data);
         const link = document.createElement("a");
@@ -137,7 +137,7 @@ export default function DashBoard() {
         }}
       >
         <Typography
-          variant="h3"
+          variant="h4"
           gutterBottom
           sx={{ color: "text.primary", textAlign: "center" }}
         >
@@ -253,8 +253,29 @@ export default function DashBoard() {
             </TableBody>
           </Table>
         </TableContainer>
-    
-      
+
+        {employeeList.length === 0 && !dataLoading && (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "35vh",
+              width: "100%",
+              mt: 2,
+            }}
+          >
+            <iframe
+              width="560"
+              height="315"
+              src="https://lottie.host/embed/b6dd50e9-14e7-44b1-8a67-e1c574f35945/XIqSggGkWI.lottie"
+              title="YouTube video player"
+              style={{ border: "none" }}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </Box>
+        )}
 
         {/* Modal for adding new employee */}
         <Dialog open={openModal} onClose={handleCloseModal}>
