@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { TextField, Button, Container, Typography, Paper, Box, ThemeProvider, createTheme } from '@mui/material';
-import { useForm } from 'react-hook-form';
+import { set, useForm } from 'react-hook-form';
 import { login } from '@/utils/actions/auth';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { PacmanLoader } from 'react-spinners';
 
 // Create a dark theme using createTheme
 const darkTheme = createTheme({
@@ -24,17 +25,21 @@ const darkTheme = createTheme({
 
 const Login = () => {
   const {register, handleSubmit, formState: { errors },setValue,reset} = useForm();
+  const [loading,setLoading] = useState(false);
   // Handle form submission
-  const onSubmit = (data) => {
-    login(data.email, data.password)
+  const onSubmit = async(data) => {
+    setLoading(true);
+    await login(data.email, data.password)
       .then((response) => {
         console.log(response)
         if (response.error) {
           toast.error(response.error.message);
         } else {
           toast.success('Login successful!');
+          localStorage.setItem("sb-auth-token",response.data.session.access_token)
         }
       })
+      setLoading(false);
   };
 
   return (
@@ -130,7 +135,7 @@ const Login = () => {
                   },
                 }}
               >
-                Log In
+                {loading?<PacmanLoader color='#fff' size={12}/>:  "Login"}
               </Button>
             </form>
             <Box mt={2}>

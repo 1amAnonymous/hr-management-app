@@ -9,11 +9,13 @@ import {
   ThemeProvider,
   createTheme,
 } from "@mui/material";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { signup } from "@/utils/actions/auth"; // Assuming you have a signup function in utils/actions/auth
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
+import { PacmanLoader } from "react-spinners";
+import Image from "next/image";
 
 // Create a dark theme using createTheme
 const darkTheme = createTheme({
@@ -40,9 +42,11 @@ const Signup = () => {
     watch,
   } = useForm();
   const [profilePic, setProfilePic] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Handle form submission
-  const onSubmit = (data) => {
+  const onSubmit = async(data) => {
+    setLoading(true);
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("email", data.email);
@@ -50,13 +54,14 @@ const Signup = () => {
     formData.append("password", data.password);
     formData.append("profilePic", profilePic); // Add profile picture to FormData
 
-    signup(formData).then((response) => {
+    await signup(formData).then((response) => {
       if (response.error) {
         toast.error(response.error.message);
       } else {
         toast.success("Signup successful!");
       }
     });
+    setLoading(false);
   };
 
   const handleFileChange = (e) => {
@@ -73,6 +78,7 @@ const Signup = () => {
     const getSession = async()=>{
       const {data}  = await supabase.auth.getSession();
       console.log(data.session)
+      // await supabase.auth.signOut();
     }
     getSession()
   },[])
@@ -125,6 +131,7 @@ const Signup = () => {
                 {...register("name", { required: "Name is required" })}
                 error={!!errors.name}
                 helperText={errors.name?.message}
+                disabled={loading}
               />
 
               <TextField
@@ -141,6 +148,7 @@ const Signup = () => {
                 })}
                 error={!!errors.email}
                 helperText={errors.email?.message}
+                disabled={loading}
               />
 
               <TextField
@@ -157,6 +165,7 @@ const Signup = () => {
                 })}
                 error={!!errors.phone}
                 helperText={errors.phone?.message}
+                disabled={loading}
               />
 
               <TextField
@@ -174,6 +183,7 @@ const Signup = () => {
                 })}
                 error={!!errors.password}
                 helperText={errors.password?.message}
+                disabled={loading}
               />
 
               <TextField
@@ -189,6 +199,7 @@ const Signup = () => {
                 })}
                 error={!!errors.confirmPassword}
                 helperText={errors.confirmPassword?.message}
+                disabled={loading}
               />
               <input
                 type="file"
@@ -197,9 +208,7 @@ const Signup = () => {
                 style={{ marginBottom: 16 }}
               />
               {profilePic && (
-                <Typography sx={{ color: "primary.main" }}>
-                  Profile picture selected
-                </Typography>
+                <Image src={URL.createObjectURL(profilePic)} alt="Profile" width={100} height={100} />
               )}
 
               <Button
@@ -214,8 +223,9 @@ const Signup = () => {
                     backgroundColor: "primary.dark",
                   },
                 }}
+                disabled={loading}
               >
-                Sign Up
+                {loading ? <PacmanLoader size={12} color="#fff" /> : "Sign Up"}
               </Button>
             </form>
             <Box mt={2}>
