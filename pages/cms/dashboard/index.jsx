@@ -28,6 +28,9 @@ import {
 import { supabase } from "@/lib/supabase";
 import { PacmanLoader } from "react-spinners";
 import toast from "react-hot-toast";
+import * as pdfjsLib from 'pdfjs-dist';
+import mammoth from 'mammoth';
+import { getResp } from "@/utils/helper/aiREsponse";
 
 // Define the dark theme
 const darkTheme = createTheme({
@@ -52,6 +55,7 @@ export default function DashBoard() {
   const [formLoading, setFormLoading] = useState(false);
   const [employeeList, setEmployeeList] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [extractedText, setExtractedText] = useState(null);
   const {
     register,
     handleSubmit,
@@ -59,7 +63,10 @@ export default function DashBoard() {
     setValue,
     formState: { errors },
   } = useForm();
-
+  if (typeof window !== 'undefined') {
+    // Ensure the code only runs in the browser (not during SSR)
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'; // Path to worker file
+  }
   // Open and close modal
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => {
@@ -69,6 +76,61 @@ export default function DashBoard() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setCv(file);
+    if (file) {
+
+      if (file.type === 'application/pdf') {
+         extractTextFromPDF(file);
+      } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        extractTextFromDOCX(file);
+      } else {
+        toast.error('Please upload a PDF or DOCX file.');
+        return;
+      }
+    }
+  };
+  const extractTextFromPDF = async (file) => {
+    const fileReader = new FileReader();
+    fileReader.onload = async (event) => {
+      const arrayBuffer = event.target.result;
+
+      try {
+        const pdfDoc = await pdfjsLib.getDocument(arrayBuffer).promise;
+        const numPages = pdfDoc.numPages;
+        let textContent = '';
+
+        for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+          const page = await pdfDoc.getPage(pageNum);
+          const content = await page.getTextContent();
+          textContent += content.items.map((item) => item.str).join(' ') + '\n';
+        }
+
+        setExtractedText(textContent); // Set the extracted text
+
+        console.log('Extracted PDF Text:', textContent);
+
+      } catch (error) {
+        console.error('Error extracting PDF text:', error);
+      }
+    };
+
+    fileReader.readAsArrayBuffer(file);
+  };
+
+  const extractTextFromDOCX = async (file) => {
+    const fileReader = new FileReader();
+    fileReader.onload = async (event) => {
+      const arrayBuffer = event.target.result;
+
+      try {
+        const { value } = await mammoth.extractRawText({ arrayBuffer });
+        setExtractedText(value); // Set the extracted text
+        console.log('Extracted DOCX Text:', value);
+      } catch (error) {
+        console.error('Error extracting DOCX text:', error);
+      }
+    };
+
+    fileReader.readAsArrayBuffer(file);
   };
   // Handle form submission
   const onSubmit = async (data) => {
@@ -81,6 +143,17 @@ export default function DashBoard() {
     formData.append("department", data.department);
     formData.append("doj", data.dateOfJoining);
     formData.append("cv", cv);
+    if(extractedText){
+      await getResp(extractedText).then((response) => {
+        console.log(response,"response")
+        if (response.error) {
+          toast.error(response.error.message);
+        }else{
+          formData.append("profileDetails",JSON.stringify(response));
+        }
+      });
+      console.log("end")
+    }
     await addEmployee(formData).then((response) => {
       if (response.error) {
         toast.error(response.error.message);
@@ -400,7 +473,7 @@ export default function DashBoard() {
               <input
                 type="file"
                 {...register("cv", { required: "CV is required" })}
-                accept=".pdf,.doc,.docx,.txt" // Allowing common document formats
+                accept=".pdf, .doc, .docx" // Allowing common document formats
                 style={{ marginBottom: "16px" }}
                 onChange={handleFileChange}
                 disabled={formLoading}

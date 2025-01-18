@@ -8,6 +8,7 @@ export const addEmployee = async (formData) => {
   const department = formData.get("department");
   const doj = formData.get("doj");
   const cv = formData.get("cv");
+  const profileDetails = formData.get("profileDetails");
   const session = await supabase.auth.getUser();
   console.log(session, "addEmployee");
   if (session.data.user) {
@@ -22,6 +23,7 @@ export const addEmployee = async (formData) => {
         department,
         doj,
         hr: session.data.user.id,
+        profileDetails
       })
       .select();
     if (error) {
@@ -30,7 +32,7 @@ export const addEmployee = async (formData) => {
       const employeeId = employeeData[0].id;
       const { data, error } = await supabase.storage
         .from("cv")
-        .update(`${employeeId}.pdf`, cv, {
+        .update(`${employeeId}`, cv, {
           cacheControl: "3600",
           upsert: true,
         });
@@ -61,6 +63,6 @@ export const getEmployeeData = async () => {
 export const downloadCV = async (employeeId) => {
   const { data, error } = await supabase.storage
     .from("cv")
-    .download(`${employeeId}.pdf`);
+    .download(`${employeeId}`);
   return { data, error };
 };
