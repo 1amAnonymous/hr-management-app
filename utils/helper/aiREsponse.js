@@ -6,7 +6,7 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 export async function getResp(data){
     const prompt = ` ${data}. give me a json object according to the given data and the object should contain{
 
-name:"",email:"",phone:"",skills:[{name:""}],description:"",qualifications:"",projects:[{projectName:""}],experience:[{company:"",role:""}]
+name:"",email:"",phone:"",skills:[{name:""}],description:"",qualifications:[{degree:"",date:"",institution:"",marks:"",cgpa:""}],cirtifications:[{name:""}],projects:[{projectName:""}],experience:[{company:"",role:"",duration:"}]
 
 }.`;
     console.log(prompt,"prompt")

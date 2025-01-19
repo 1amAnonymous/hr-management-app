@@ -18,6 +18,7 @@ import {
   TextField,
   DialogContentText,
   Skeleton,
+  IconButton,
 } from "@mui/material";
 import { set, useForm } from "react-hook-form";
 import {
@@ -28,9 +29,11 @@ import {
 import { supabase } from "@/lib/supabase";
 import { PacmanLoader } from "react-spinners";
 import toast from "react-hot-toast";
-import * as pdfjsLib from 'pdfjs-dist';
-import mammoth from 'mammoth';
+import * as pdfjsLib from "pdfjs-dist";
+import mammoth from "mammoth";
 import { getResp } from "@/utils/helper/aiREsponse";
+import { FaRegEdit, FaRegEye, FaRegTrashAlt, FaTrash } from "react-icons/fa";
+import Link from "next/link";
 
 // Define the dark theme
 const darkTheme = createTheme({
@@ -63,9 +66,9 @@ export default function DashBoard() {
     setValue,
     formState: { errors },
   } = useForm();
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     // Ensure the code only runs in the browser (not during SSR)
-    pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'; // Path to worker file
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs"; // Path to worker file
   }
   // Open and close modal
   const handleOpenModal = () => setOpenModal(true);
@@ -77,13 +80,15 @@ export default function DashBoard() {
     const file = e.target.files[0];
     setCv(file);
     if (file) {
-
-      if (file.type === 'application/pdf') {
-         extractTextFromPDF(file);
-      } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      if (file.type === "application/pdf") {
+        extractTextFromPDF(file);
+      } else if (
+        file.type ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      ) {
         extractTextFromDOCX(file);
       } else {
-        toast.error('Please upload a PDF or DOCX file.');
+        toast.error("Please upload a PDF or DOCX file.");
         return;
       }
     }
@@ -96,20 +101,19 @@ export default function DashBoard() {
       try {
         const pdfDoc = await pdfjsLib.getDocument(arrayBuffer).promise;
         const numPages = pdfDoc.numPages;
-        let textContent = '';
+        let textContent = "";
 
         for (let pageNum = 1; pageNum <= numPages; pageNum++) {
           const page = await pdfDoc.getPage(pageNum);
           const content = await page.getTextContent();
-          textContent += content.items.map((item) => item.str).join(' ') + '\n';
+          textContent += content.items.map((item) => item.str).join(" ") + "\n";
         }
 
         setExtractedText(textContent); // Set the extracted text
 
-        console.log('Extracted PDF Text:', textContent);
-
+        console.log("Extracted PDF Text:", textContent);
       } catch (error) {
-        console.error('Error extracting PDF text:', error);
+        console.error("Error extracting PDF text:", error);
       }
     };
 
@@ -124,9 +128,9 @@ export default function DashBoard() {
       try {
         const { value } = await mammoth.extractRawText({ arrayBuffer });
         setExtractedText(value); // Set the extracted text
-        console.log('Extracted DOCX Text:', value);
+        console.log("Extracted DOCX Text:", value);
       } catch (error) {
-        console.error('Error extracting DOCX text:', error);
+        console.error("Error extracting DOCX text:", error);
       }
     };
 
@@ -143,16 +147,16 @@ export default function DashBoard() {
     formData.append("department", data.department);
     formData.append("doj", data.dateOfJoining);
     formData.append("cv", cv);
-    if(extractedText){
+    if (extractedText) {
       await getResp(extractedText).then((response) => {
-        console.log(response,"response")
+        console.log(response, "response");
         if (response.error) {
           toast.error(response.error.message);
-        }else{
-          formData.append("profileDetails",JSON.stringify(response));
+        } else {
+          formData.append("profileDetails", JSON.stringify(response));
         }
       });
-      console.log("end")
+      console.log("end");
     }
     await addEmployee(formData).then((response) => {
       if (response.error) {
@@ -254,6 +258,9 @@ export default function DashBoard() {
                 <TableCell sx={{ color: "text.primary" }}>
                   <strong>CV</strong>
                 </TableCell>
+                <TableCell sx={{ color: "text.primary" }}>
+                  <strong>Actions</strong>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -320,6 +327,21 @@ export default function DashBoard() {
                         >
                           Download CV
                         </Button>
+                      </TableCell>
+                      <TableCell sx={{ color: "text.primary" }}>
+                        <Box display={"flex"} gap={2}>
+                          <Link href={`/cms/employee/${employee.id}`}>
+                          <IconButton color="primary">
+                            <FaRegEye size={27} color="#26c1ff" />
+                          </IconButton>
+                          </Link>
+                          <IconButton color="primary">
+                            <FaRegEdit size={27} color="lightgreen" />
+                          </IconButton>
+                          <IconButton color="primary">
+                            <FaRegTrashAlt size={27} color="red" />
+                          </IconButton>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ))}

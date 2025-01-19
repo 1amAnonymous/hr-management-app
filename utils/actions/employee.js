@@ -66,3 +66,11 @@ export const downloadCV = async (employeeId) => {
     .download(`${employeeId}`);
   return { data, error };
 };
+
+export const getEmployeeDetails = async (employeeId) => {
+  const { data, error } = await supabase
+    .from("employee")
+    .select("*")
+    .eq("id", employeeId);
+  return { data, error };
+};
