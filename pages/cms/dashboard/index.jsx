@@ -23,6 +23,7 @@ import {
 import { set, useForm } from "react-hook-form";
 import {
   addEmployee,
+  deleteEmployee,
   downloadCV,
   getEmployeeData,
 } from "@/utils/actions/employee";
@@ -34,6 +35,7 @@ import mammoth from "mammoth";
 import { getResp } from "@/utils/helper/aiREsponse";
 import { FaRegEdit, FaRegEye, FaRegTrashAlt, FaTrash } from "react-icons/fa";
 import Link from "next/link";
+import Swal from "sweetalert2";
 
 // Define the dark theme
 const darkTheme = createTheme({
@@ -198,6 +200,47 @@ export default function DashBoard() {
       }
     }
   };
+  const handleDeleteEmployee = async (employeeId) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+      allowOutsideClick: false,
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: "Deleting...",
+          text: "Please wait while we delete this item.",
+          icon: "info",
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+          showConfirmButton: false,
+        });
+        await deleteEmployee(employeeId).then((response) => {
+          if (response.error) {
+            Swal.fire({
+              title: "Error!",
+              text: "There was an issue with deleting your file.",
+              icon: "error",
+            });
+          }else {
+            Swal.fire({
+              title: "Deleted!",
+              text: "Your file has been deleted.",
+              icon: "success",
+            });
+            getEmployeeList();
+          }
+        })
+      }
+    });
+  }
   useEffect(() => {
     getEmployeeList();
   }, []);
@@ -335,10 +378,12 @@ export default function DashBoard() {
                             <FaRegEye size={27} color="#26c1ff" />
                           </IconButton>
                           </Link>
+                          <Link href={`/cms/employee/${employee.id}/edit`}>
                           <IconButton color="primary">
                             <FaRegEdit size={27} color="lightgreen" />
                           </IconButton>
-                          <IconButton color="primary">
+                          </Link>
+                          <IconButton color="primary" onClick={() => handleDeleteEmployee(employee?.id)}>
                             <FaRegTrashAlt size={27} color="red" />
                           </IconButton>
                         </Box>

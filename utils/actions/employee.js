@@ -23,7 +23,7 @@ export const addEmployee = async (formData) => {
         department,
         doj,
         hr: session.data.user.id,
-        profileDetails
+        profileDetails,
       })
       .select();
     if (error) {
@@ -72,5 +72,57 @@ export const getEmployeeDetails = async (employeeId) => {
     .from("employee")
     .select("*")
     .eq("id", employeeId);
+  return { data, error };
+};
+
+export const getSingleEmployeeData = async (employeeId) => {
+  const { data, error } = await supabase
+    .from("employee")
+    .select("*")
+    .eq("id", employeeId);
+  return { data, error };
+};
+
+export const updateEmployee = async (formData) => {
+  const name = formData.get("name");
+  const email = formData.get("email");
+  const role = formData.get("role");
+  const phone = formData.get("phone");
+  const department = formData.get("department");
+  const doj = formData.get("doj");
+  const profileDetails = formData.get("profileDetails");
+  const cv = formData.get("cv");
+  const employeeId = formData.get("employeeId");
+  const updatedData = { name, email, role, phone, department, doj };
+  if (profileDetails) {
+    updatedData.profileDetails = profileDetails;
+  }
+
+  const { data, error } = await supabase
+    .from("employee")
+    .update(updatedData)
+    .eq("id", employeeId);
+  if (!error && cv) {
+    const { data, error } = await supabase.storage
+      .from("cv")
+      .update(`${employeeId}`, cv, {
+        cacheControl: "3600",
+        upsert: true,
+      });
+     if(error) return { data, error }; 
+  }
+  return { data, error };
+};
+
+
+export const deleteEmployee = async (employeeId) => {
+  const { data, error } = await supabase
+    .from("employee")
+    .delete()
+    .eq("id", employeeId);
+  if(!error) {
+    const {data: cvData, error: cvError} = await supabase.storage.from("cv").remove(`${employeeId}`);
+    if(cvError) return { cvData, cvError };
+  }
   return { data, error };
 };
