@@ -26,6 +26,7 @@ import {
   deleteEmployee,
   downloadCV,
   getEmployeeData,
+  searchEmployee,
 } from "@/utils/actions/employee";
 import { supabase } from "@/lib/supabase";
 import { PacmanLoader } from "react-spinners";
@@ -33,7 +34,13 @@ import toast from "react-hot-toast";
 import * as pdfjsLib from "pdfjs-dist";
 import mammoth from "mammoth";
 import { getResp } from "@/utils/helper/aiREsponse";
-import { FaRegEdit, FaRegEye, FaRegTrashAlt, FaTrash } from "react-icons/fa";
+import {
+  FaRegEdit,
+  FaRegEye,
+  FaRegTrashAlt,
+  FaSearch,
+  FaTrash,
+} from "react-icons/fa";
 import Link from "next/link";
 import Swal from "sweetalert2";
 
@@ -61,6 +68,7 @@ export default function DashBoard() {
   const [employeeList, setEmployeeList] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [extractedText, setExtractedText] = useState(null);
+  const [searchQuery,setSearchQuery] = useState('');
   const {
     register,
     handleSubmit,
@@ -229,7 +237,7 @@ export default function DashBoard() {
               text: "There was an issue with deleting your file.",
               icon: "error",
             });
-          }else {
+          } else {
             Swal.fire({
               title: "Deleted!",
               text: "Your file has been deleted.",
@@ -237,9 +245,27 @@ export default function DashBoard() {
             });
             getEmployeeList();
           }
-        })
+        });
       }
     });
+  };
+  const handleSearch = async() => {
+    if(searchQuery){
+      console.log(searchQuery)
+      setDataLoading(true);
+      await searchEmployee(searchQuery).then(
+        (response) => {
+          if (response.error) {
+            toast.error(response.error.message);
+          } else {
+            setEmployeeList(response.data);
+          }
+          setDataLoading(false);
+        }
+      )
+    }else{
+      toast.error("Please enter a search query.");
+    }
   }
   useEffect(() => {
     getEmployeeList();
@@ -264,14 +290,54 @@ export default function DashBoard() {
           HR Management Dashboard
         </Typography>
 
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleOpenModal}
-          sx={{ marginBottom: 2 }}
+        <Box
+          width={"100%"}
+          display="flex"
+          justifyContent={"space-between"}
+          flexDirection={{ xs: "column", sm: "row" }}
+          alignItems={{ xs: "flex-start", sm: "center" }}
         >
-          Add New Employee
-        </Button>
+          <TextField
+            variant="outlined"
+            placeholder="Search name, email, department or role"
+            onChange={(e)=>setSearchQuery(e.target.value)}
+            sx={{
+              marginBottom: 2,
+              width: { xs: "100%", sm: "21.5rem" },
+              "& .MuiInputBase-root": {
+                paddingRight: "0px", // Remove default padding to align icon
+              },
+            }}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <IconButton
+                    sx={{
+                      padding: 0,
+                      width: "2rem",
+                      height: "2rem",
+                      marginRight: "0.5rem",
+                    }}
+                    onClick={handleSearch}
+                  >
+                    <FaSearch
+                      style={{ color: "#808080", marginLeft: "0.5rem" }}
+                      size={20}
+                    />
+                  </IconButton>
+                ),
+              },
+            }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleOpenModal}
+            sx={{ marginBottom: 2 }}
+          >
+            Add New Employee
+          </Button>
+        </Box>
 
         <TableContainer
           component={Paper}
@@ -374,16 +440,19 @@ export default function DashBoard() {
                       <TableCell sx={{ color: "text.primary" }}>
                         <Box display={"flex"} gap={2}>
                           <Link href={`/cms/employee/${employee.id}`}>
-                          <IconButton color="primary">
-                            <FaRegEye size={27} color="#26c1ff" />
-                          </IconButton>
+                            <IconButton color="primary">
+                              <FaRegEye size={27} color="#26c1ff" />
+                            </IconButton>
                           </Link>
                           <Link href={`/cms/employee/${employee.id}/edit`}>
-                          <IconButton color="primary">
-                            <FaRegEdit size={27} color="lightgreen" />
-                          </IconButton>
+                            <IconButton color="primary">
+                              <FaRegEdit size={27} color="lightgreen" />
+                            </IconButton>
                           </Link>
-                          <IconButton color="primary" onClick={() => handleDeleteEmployee(employee?.id)}>
+                          <IconButton
+                            color="primary"
+                            onClick={() => handleDeleteEmployee(employee?.id)}
+                          >
                             <FaRegTrashAlt size={27} color="red" />
                           </IconButton>
                         </Box>

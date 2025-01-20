@@ -126,3 +126,15 @@ export const deleteEmployee = async (employeeId) => {
   }
   return { data, error };
 };
+
+export const searchEmployee = async (query) => {
+  const hrId = (await supabase.auth.getUser()).data.user.id;
+  if(!hrId) return { data: [], error: new Error("User not found") };
+  const { data, error } = await supabase
+      .from('employee')
+      .select('*')
+      .or(
+        `name.ilike.%${query}%,email.ilike.%${query}%,role.ilike.%${query}%,department.ilike.%${query}%`
+      ).eq('hr', hrId);
+  return { data, error };
+}
