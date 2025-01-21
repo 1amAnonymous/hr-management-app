@@ -39,5 +39,9 @@ export async function middleware(request) {
 export const config = {
   matcher: [
     '/cms/dashboard',
+    '/cms/jobs/admin/:path*',
+    '/cms/leaves',
+    '/cms/employee/:path*',
+    '/cms/applicants/:path*'
   ],
 }

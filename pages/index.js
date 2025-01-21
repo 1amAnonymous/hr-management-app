@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { TextField, Button, Container, Typography, Paper, Box, ThemeProvider, createTheme } from '@mui/material';
 import { set, useForm } from 'react-hook-form';
-import { login } from '@/utils/actions/auth';
+import { getProfileUrl, login } from '@/utils/actions/auth';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { PacmanLoader } from 'react-spinners';
+import { useDispatch, useSelector } from 'react-redux';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/router';
+import { setUser } from '@/toolkit/slice/authSlice';
 
 // Create a dark theme using createTheme
 const darkTheme = createTheme({
@@ -26,6 +30,10 @@ const darkTheme = createTheme({
 const Login = () => {
   const {register, handleSubmit, formState: { errors },setValue,reset} = useForm();
   const [loading,setLoading] = useState(false);
+  const {user} = useSelector((state) => state.auth);
+  const router = useRouter();
+  const dispatch = useDispatch();
+
   // Handle form submission
   const onSubmit = async(data) => {
     setLoading(true);
@@ -36,11 +44,31 @@ const Login = () => {
           toast.error(response.error.message);
         } else {
           toast.success('Login successful!');
+          supabase.auth.getSession().then((response)=>{
+            if(response.data.session){
+              const data = response.data.session.user;
+              const profile = getProfileUrl(data.id);
+              if(profile.data&& profile.data.publicUrl){
+                data.profilePic = profile.data.publicUrl
+              }
+              dispatch(setUser(response.data.session.user))
+            }
+          })
+          router.push('/cms/dashboard');
           localStorage.setItem("sb-auth-token",response.data.session.access_token)
         }
       })
       setLoading(false);
   };
+
+  useEffect(() => {
+    supabase.auth.getSession().then((response)=>{
+      if(response.data.session){
+        router.push('/cms/dashboard');
+      }
+    });
+
+  },[])
 
   return (
     <ThemeProvider theme={darkTheme}>

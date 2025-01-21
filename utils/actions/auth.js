@@ -59,3 +59,12 @@ export const signup = async (formData) => {
 
   return { data, error };
 };
+
+export const logout = async () => supabase.auth.signOut();
+
+export const getProfileUrl = (UID) => {
+  const { data, error } = supabase.storage
+    .from("profile_pic")
+    .getPublicUrl(`${UID}.png`);
+  return { data, error };
+}
