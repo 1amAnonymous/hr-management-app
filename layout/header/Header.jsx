@@ -74,7 +74,7 @@ const Header = () => {
             <Box sx={{ display: { xs: "none", md: "flex" }, gap: 2, mr: 2 }}>
               {user !== null && (
                 <>
-                  <Link href="/cms/dashboard" passHref>
+                  <Link href="/cms/dashboard">
                     <Button
                       color="inherit"
                       sx={{
@@ -86,7 +86,7 @@ const Header = () => {
                       Dashboard
                     </Button>
                   </Link>
-                  <Link href="/cms/jobs/admin" passHref>
+                  <Link href="/cms/jobs/admin">
                     <Button
                       color="inherit"
                       sx={{
@@ -98,7 +98,7 @@ const Header = () => {
                       Post Jobs
                     </Button>
                   </Link>
-                  <Link href="/cms/leaves" passHref>
+                  <Link href="/cms/leaves">
                     <Button
                       color="inherit"
                       sx={{
@@ -112,7 +112,7 @@ const Header = () => {
                   </Link>
                 </>
               )}
-              <Link href="/cms/jobs/public" passHref>
+              <Link href="/cms/jobs/public">
                 <Button
                   color="inherit"
                   sx={{
@@ -123,7 +123,7 @@ const Header = () => {
                 </Button>
               </Link>
               {pathname !== "/" && user === null && (
-                <Link href="/" passHref>
+                <Link href="/">
                   <Button
                     color="inherit"
                     sx={{
