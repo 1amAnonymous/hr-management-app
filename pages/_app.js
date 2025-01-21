@@ -1,4 +1,4 @@
-import Wrapper from "@/layout/wrapper/wrapper";
+import Wrapper from "@/layout/wrapper/Wrapper";
 import "@/styles/globals.css";
 import { store } from "@/toolkit/store/store";
 import { Toaster } from "react-hot-toast";
