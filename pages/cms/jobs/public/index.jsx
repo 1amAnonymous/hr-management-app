@@ -21,11 +21,12 @@ import {
   FaMapMarkerAlt,
   FaTrashAlt,
   FaEdit,
+  FaRegHandshake,
 } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { ThemeProvider } from "@emotion/react";
 import { useForm } from "react-hook-form";
-import { adminGetJobs, adminPostJobs, deleteJob } from "@/utils/actions/jobs";
+import { adminGetJobs, adminPostJobs, deleteJob, getPublicJobs } from "@/utils/actions/jobs";
 import toast from "react-hot-toast";
 import { PacmanLoader } from "react-spinners";
 import Link from "next/link";
@@ -74,59 +75,9 @@ const JobListingPage = () => {
     handleClosePostJobModal(); // Close the modal after posting
   };
 
-  // Handle Delete Job
-  const handleDeleteJob = async(jobId) => {
-    Swal.fire({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, delete it!",
-        allowOutsideClick: false,
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          Swal.fire({
-            title: "Deleting...",
-            text: "Please wait while we delete this item.",
-            icon: "info",
-            allowOutsideClick: false,
-            didOpen: () => {
-              Swal.showLoading();
-            },
-            showConfirmButton: false,
-          });
-          await deleteJob(jobId).then((response) => {
-            if (response.error) {
-              Swal.fire({
-                title: "Error!",
-                text: "There was an issue with deleting your file.",
-                icon: "error",
-              });
-            } else {
-              Swal.fire({
-                title: "Deleted!",
-                text: "Your file has been deleted.",
-                icon: "success",
-              });
-              adminGetJobs().then((response) => {
-                if (response.error) {
-                  toast.error(response.error.message);
-                } else {
-                  setJobListings(response.data);
-                }
-                setDataLoading(false);
-              });
-            }
-          });
-        }
-      });
-  };
-
 
   useEffect(() => {
-    adminGetJobs().then((response) => {
+    getPublicJobs().then((response) => {
       if (response.error) {
         toast.error(response.error.message);
       } else {
@@ -146,22 +97,8 @@ const JobListingPage = () => {
       >
         {/* Title of the Job Listing Page */}
         <Typography variant="h4" sx={{ marginBottom: 3 }} color="text.primary">
-          Posted Jobs
+          Available Jobs
         </Typography>
-
-        {/* Post Job Button (Top of the Page) */}
-        <Box
-          sx={{ display: "flex", justifyContent: "flex-end", marginBottom: 3 }}
-        >
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleOpenPostJobModal}
-            startIcon={<FaPlusCircle />}
-          >
-            Post Job
-          </Button>
-        </Box>
 
         {/* Job Listings (Using Flexbox layout) */}
         {dataLoading ? (
@@ -307,27 +244,15 @@ const JobListingPage = () => {
 
                     {/* Action Buttons (Delete and Edit) */}
                     <CardActions sx={{ justifyContent: "flex-end" }}>
-                      <Link href={`/cms/jobs/admin/applications/${job.id}`}>
-                      <Button sx={{
-                        display: "flex",
-                        alignItems: "center",
-                      }}>
-                       applications
+                      <Link href={`/cms/jobs/public/${job.id}/apply`}>
+                      <Button
+                        variant="contained" // Button style: filled
+                        color="primary" // Primary color of the button
+                        startIcon={<FaRegHandshake />} // Icon for the button
+                        size="large" // Size of the button
+                      >
+                        Apply
                       </Button>
-                      </Link>
-                      <IconButton
-                        onClick={() => handleDeleteJob(job.id)}
-                        color="error"
-                        sx={{ marginRight: 1 }}
-                      >
-                        <FaTrashAlt />
-                      </IconButton>
-                      <Link href={`/cms/jobs/admin/edit/${job.id}`}>
-                      <IconButton
-                        color="primary"
-                      >
-                        <FaEdit color="lightgreen"/>
-                      </IconButton>
                       </Link>
                     </CardActions>
                   </Card>

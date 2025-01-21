@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { getResp } from "../helper/aiREsponse";
 
 export const adminPostJobs = async (formData) => {
   const role = formData.get("role");
@@ -77,4 +78,47 @@ export const deleteJob = async (jobId) => {
   } else {
     return { data: [], error: new Error("User not found") };
   }
+}
+
+export const getPublicJobs = async () => {
+  const { data, error } = await supabase
+    .from("jobs")
+    .select("*");
+  return { data, error }
+}
+
+export const getSinglePublicJob = async (jobId) => {
+  const { data, error } = await supabase
+    .from("jobs")
+    .select("*")
+    .eq("id", jobId);
+  return { data, error }
+}
+
+export const publicApplyJobs = async (formData) => {
+  const name = formData.get("name");
+  const email = formData.get("email");
+  const phone = formData.get("phone");
+  const jobId = formData.get("jobid");
+  const hrId = formData.get("hrId");
+  const cv = formData.get("cv");
+  let profileDetails = formData.get("profileDetails");
+  const resp = await getResp(profileDetails);
+  profileDetails = JSON.stringify(resp);
+  console.log(profileDetails)
+  const { data:applicantData, error: applicantError } = await supabase
+    .from("applications")
+    .insert({ name, email, phone, jobId, hrId, profileDetails }).select();
+  if(!applicantError){
+    if (cv) {
+      const { data, error } = await supabase.storage
+        .from("cv")
+        .update(`${applicantData[0].id}`, cv, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+      return { data, error };
+    }
+  }
+  return { applicantData, applicantError }
 }
