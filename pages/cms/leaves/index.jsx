@@ -23,12 +23,18 @@ import { createLeave, deleteLeave, getLeaves } from "@/utils/actions/leaves";
 import toast from "react-hot-toast";
 import { PacmanLoader } from "react-spinners";
 import Swal from "sweetalert2";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import { SlCalender } from "react-icons/sl";
+import { FaTableList } from "react-icons/fa6";
+import { FaTrashAlt } from "react-icons/fa";
 
 const LeavePage = () => {
   const [open, setOpen] = useState(false);
   const [leaves, setLeaves] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [formLoading, setFormLoading] = useState(false);
+  const [tableMode, setTableMode] = useState(true);
   const {
     register,
     handleSubmit,
@@ -133,6 +139,21 @@ const LeavePage = () => {
       setDataLoading(false);
     });
   }, []);
+  const renderEventContent = (eventInfo) => {
+    return (
+      <div>
+        <span>{eventInfo.event.title}</span>
+        {/* Add buttons inside the event */}
+        <IconButton>
+          <FaTrashAlt
+            size={20}
+            color="red"
+            onClick={() => handleDelete(eventInfo.event.id)}
+          />
+        </IconButton>
+      </div>
+    );
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -142,64 +163,77 @@ const LeavePage = () => {
         minHeight={"100vh"}
         minWidth={"100vw"}
       >
-        <Button variant="contained" color="primary" onClick={handleOpen}>
-          Add Leave
-        </Button>
+        <Box display={"flex"} justifyContent={"space-between"}>
+          <Button variant="contained" color="primary" onClick={handleOpen}>
+            Add Leave
+          </Button>
 
-        <TableContainer component={Paper} sx={{ marginTop: 2 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>
-                  <strong>Employee Name</strong>
-                </TableCell>
-                <TableCell>
-                  <strong>From</strong>
-                </TableCell>
-                <TableCell>
-                  <strong>To</strong>
-                </TableCell>
-                <TableCell>
-                  <strong>Action</strong>
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {dataLoading
-                ? // Show Skeletons while loading
-                  [1, 2, 3, 4].map((_, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <Skeleton variant="text" width="80%" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton variant="text" width="60%" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton variant="text" width="60%" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton variant="circle" width={40} height={40} />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                : // Display actual data once loaded
-                  Array.isArray(leaves) &&
-                  leaves.length > 0 &&
-                  leaves.map((leave, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{leave?.name}</TableCell>
-                      <TableCell>{leave?.from}</TableCell>
-                      <TableCell>{leave?.to}</TableCell>
-                      <TableCell>
-                        <IconButton onClick={() => handleDelete(leave?.id)}>
-                          <Delete color="error" />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-            </TableBody>
-          </Table>
+          {tableMode ? (
+            <IconButton onClick={() => setTableMode(!tableMode)}>
+              <SlCalender size={20} color="#fff" />
+            </IconButton>
+          ) : (
+            <IconButton onClick={() => setTableMode(!tableMode)}>
+              <FaTableList size={20} color="#fff" />
+            </IconButton>
+          )}
+        </Box>
+
+        {tableMode && (
+          <TableContainer component={Paper} sx={{ marginTop: 2 }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>
+                    <strong>Employee Name</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>From</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>To</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>Action</strong>
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {dataLoading
+                  ? // Show Skeletons while loading
+                    [1, 2, 3, 4].map((_, index) => (
+                      <TableRow key={index}>
+                        <TableCell>
+                          <Skeleton variant="text" width="80%" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton variant="text" width="60%" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton variant="text" width="60%" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton variant="circle" width={40} height={40} />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  : // Display actual data once loaded
+                    Array.isArray(leaves) &&
+                    leaves.length > 0 &&
+                    leaves.map((leave, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{leave?.name}</TableCell>
+                        <TableCell>{leave?.from}</TableCell>
+                        <TableCell>{leave?.to}</TableCell>
+                        <TableCell>
+                          <IconButton onClick={() => handleDelete(leave?.id)}>
+                            <Delete color="error" />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+              </TableBody>
+            </Table>
             {!dataLoading && leaves.length === 0 && (
               <Box
                 sx={{
@@ -222,7 +256,8 @@ const LeavePage = () => {
                 />
               </Box>
             )}
-        </TableContainer>
+          </TableContainer>
+        )}
 
         {/* Modal Form for Adding Leave */}
         <Modal open={open} onClose={handleClose}>
@@ -309,6 +344,53 @@ const LeavePage = () => {
             </form>
           </Box>
         </Modal>
+
+        {!tableMode && (
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              mt: 2,
+              // justifyContent: 'center',
+              flexDirection: "column",
+              alignItems: "center",
+              backgroundColor: "#121212", // Dark background for the entire container
+              minHeight: "100vh", // Ensure full height for dark mode to fill
+              // padding: 2, // Add some padding for better spacing
+            }}
+          >
+            {dataLoading ? (
+              <Skeleton variant="rectangular" width="100%" height={500} />
+            ) : (
+              <Box
+                sx={{
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                }}
+              >
+                <FullCalendar
+                  plugins={[dayGridPlugin]}
+                  initialView="dayGridMonth"
+                  events={leaves.map((item) => {
+                    return {
+                      title: item?.name,
+                      start: item?.from,
+                      end: item?.to,
+                      id: item?.id,
+                    };
+                  })}
+                  headerToolbar={{
+                    left: "prev,next",
+                    center: "title",
+                    right: "dayGridMonth,dayGridWeek",
+                  }}
+                  eventContent={renderEventContent}
+                />
+              </Box>
+            )}
+          </Box>
+        )}
       </Box>
     </ThemeProvider>
   );

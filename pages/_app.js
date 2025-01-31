@@ -3,6 +3,7 @@ import "@/styles/globals.css";
 import { store } from "@/toolkit/store/store";
 import { Toaster } from "react-hot-toast";
 import { Provider } from "react-redux";
+import './cms/leaves/LeavesCalender.css'
 export default function App({ Component, pageProps }) {
   return (
     <>

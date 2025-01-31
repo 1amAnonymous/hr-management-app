@@ -1,0 +1,72 @@
+/* Dark Theme Styles for FullCalendar */
+
+/* General FullCalendar styles */
+.fc {
+    background-color: #2c2f38; /* Dark background */
+    color: #fff; /* White text */
+    width: 100% !important; /* Ensure FullCalendar takes full width */
+  }
+  
+  /* Toolbar (header) style */
+  .fc-toolbar {
+    background-color: #1d2129; /* Dark toolbar background */
+    border: 1px solid #444; /* Toolbar border */
+  }
+  
+  /* Button styles */
+  .fc-button {
+    background-color: #444; /* Button background */
+    color: #fff; /* Button text color */
+    border: 1px solid #333; /* Button border */
+  }
+  
+  .fc-button:hover {
+    background-color: #555; /* Hover effect for buttons */
+  }
+  
+  /* Day cell style */
+  .fc-daygrid-day {
+    background-color: #333; /* Day cell background */
+    color: #fff; /* Day text color */
+  }
+  
+  .fc-daygrid-day-number {
+    color: #fff; /* Day number text color */
+  }
+  
+  /* Event styles */
+  .fc-daygrid-event {
+    background-color: #825DB0; /* Event background color */
+    border: 1px solid #825DB0; /* Event border color */
+    color: white; /* Event text color */
+  }
+  
+  /* Calendar container styling */
+  .calendar-container {
+    margin: 30px;
+    padding: 20px;
+    width: 100%; /* Make it full-width to adapt to screen size */
+    max-width: 1200px; /* You can limit the max width if necessary */
+    margin-left: auto; /* Center horizontally */
+    margin-right: auto; /* Center horizontally */
+  }
+  
+  /* Optionally, adjust the calendar's height */
+  .fc-calendar {
+    height: 70vh; /* You can adjust this based on your design */
+  }
+
+  
+  /* Style for smaller screens */
+  @media (max-width: 768px) {
+    .calendar-container {
+      margin: 10px;
+      padding: 10px;
+    }
+  
+    .fc {
+      width: 100% !important; /* Ensure the calendar fits within smaller screens */
+      min-width: fit-content;
+    }
+  }
+  
