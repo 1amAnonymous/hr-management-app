@@ -581,6 +581,10 @@ export default function DashBoard() {
                     value: 10,
                     message: "Phone number must be at most 10 digits",
                   },
+                  pattern:{
+                    value:/^\d{10}$/,
+                    message:"Phone number must be containing numbers only and must be 10 digits"
+                  }
                 })}
                 sx={{ marginBottom: 2 }}
                 error={!!errors.phone}
@@ -608,7 +612,15 @@ export default function DashBoard() {
               {/* CV Upload field */}
               <input
                 type="file"
-                {...register("cv", { required: "CV is required" })}
+                {...register("cv", { required: "CV is required",
+                  validate: (file)=>{
+                    if (file[0] && file[0].type !== "application/pdf" && file[0].type !== "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+                      console.log(file[0].type);
+                      return "Please upload a PDF or DOCX file.";
+                    }
+                    return true;
+                  }
+                })}
                 accept=".pdf, .doc, .docx" // Allowing common document formats
                 style={{ marginBottom: "16px" }}
                 onChange={handleFileChange}

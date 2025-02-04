@@ -12,7 +12,6 @@ import {
 } from "@mui/material";
 import { FaRegHandshake } from "react-icons/fa"; // Icon for Apply Jobs
 import { useForm } from "react-hook-form";
-import { AttachFile } from "@mui/icons-material"; // Material Icon for file attachment
 import { useSelector } from "react-redux";
 import { ThemeProvider } from "@emotion/react";
 import useReadFiles from "@/hooks/globalhooks/useReadFiles";
@@ -38,7 +37,7 @@ const ApplyJobPage = () => {
   const { slug } = router.query;
   const { theme } = useSelector((state) => state.theme);
   const [file, setFile] = useState(null);
-  const onSubmit = async(data) => {
+  const onSubmit = async (data) => {
     console.log(data);
     if (file) {
       const formData = new FormData();
@@ -53,20 +52,21 @@ const ApplyJobPage = () => {
       }
       setFormLoading(true);
       await publicApplyJobs(formData).then((response) => {
-          if(response.error) {
-            toast.error(response.error.message);
-            setError(true);
-          }else{
-            toast.success("Application submitted successfully!");
-            router.push("/cms/jobs/public/success");
-          }
-          setFormLoading(false);
+        if (response.error) {
+          toast.error(response.error.message);
+          setError(true);
+        } else {
+          toast.success("Application submitted successfully!");
+          router.push("/cms/jobs/public/success");
+        }
+        setFormLoading(false);
       });
     }
   };
 
   const onFileChange = (event) => {
     const resume = event.target.files[0];
+    console.log(resume);
     if (resume) {
       setFile(resume);
       if (resume.type === "application/pdf") {
@@ -241,7 +241,12 @@ const ApplyJobPage = () => {
                     label="Email Address"
                     variant="outlined"
                     fullWidth
-                    {...register("email", { required: "Email is required" })}
+                    {...register("email", { required: "Email is required",
+                      pattern: {
+                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                        message: "Invalid email address",
+                      },
+                    })}
                     error={!!errors.email}
                     helperText={errors.email ? errors.email.message : ""}
                     disabled={formLoading}
@@ -256,6 +261,18 @@ const ApplyJobPage = () => {
                     fullWidth
                     {...register("phone", {
                       required: "Phone number is required",
+                      maxLength:{
+                        value: 10,
+                        message: "The number should be at max 10 digits long"
+                      },
+                      minLength: {
+                        value: 10,
+                        message: "The number should be at least 10 digits long"
+                      },
+                      pattern:{
+                        value: /^[0-9]{10}$/,
+                        message: "Please enter a valid 10-digit phone number"
+                      }
                     })}
                     error={!!errors.phone}
                     helperText={errors.phone ? errors.phone.message : ""}
@@ -278,34 +295,30 @@ const ApplyJobPage = () => {
                   flexDirection={"column"}
                   justifyContent={"center"}
                 >
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    component="label"
-                    sx={{
-                      textTransform: "none",
-                      padding: "10px",
-                      borderColor: errors.cv ? "red" : "grey",
-                      height: "auto",
-                    }}
+                  <TextField
+                    type="file"
+                    {...register("cv", {
+                      required: "CV is required",
+                      validate: (file) => {
+                        if (
+                          file[0] &&
+                          file[0].type !== "application/pdf" &&
+                          file[0].type !==
+                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        ) {
+                          console.log(file[0].type);
+                          return "Please upload a PDF or DOCX file.";
+                        }
+                        return true;
+                      },
+                    })}
+                    accept=".pdf, .doc, .docx" // Allowing common document formats
+                    style={{ marginBottom: "16px" }}
+                    onChange={onFileChange}
                     disabled={formLoading}
-                  >
-                    <AttachFile sx={{ marginRight: 1 }} />
-                    Upload CV (PDF/DOCX)
-                    <input
-                      type="file"
-                      accept=".pdf,.docx"
-                      hidden
-                      {...register("cv",{
-                        required: "CV is required",
-                      })}
-                      onChange={onFileChange}
-                    />
-                  </Button>
+                  />
                   {errors.cv && (
-                    <Typography color="error" variant="body2">
-                      {errors.cv.message}
-                    </Typography>
+                    <div style={{ color: "red" }}>{errors.cv.message}</div>
                   )}
                 </Grid2>
 
@@ -327,7 +340,11 @@ const ApplyJobPage = () => {
                     }}
                     disabled={formLoading}
                   >
-                    {formLoading ? <PacmanLoader size={12} color="white" /> : "Apply Now"}
+                    {formLoading ? (
+                      <PacmanLoader size={12} color="white" />
+                    ) : (
+                      "Apply Now"
+                    )}
                   </Button>
                 </Grid2>
               </Grid2>
